@@ -1,0 +1,18 @@
+@using EInvoice.Web.Services
+@using System.Globalization
+<div class="table-responsive"><table class="table table-hover align-middle">
+    <caption>Grouped by the selected dimension and currency. Amounts use the original invoice net, tax and payable values.</caption>
+    <thead><tr>
+        @if (Dimension != "Buyer") { <th scope="col">Supplier</th> }
+        @if (Dimension != "Supplier") { <th scope="col">Buyer</th> }
+        <th scope="col">Currency</th><th scope="col" class="text-end">Invoice count</th><th scope="col" class="text-end">Net</th><th scope="col" class="text-end">Tax</th><th scope="col" class="text-end">Payable</th>
+    </tr></thead>
+    <tbody>@foreach (var row in Rows) {
+        <tr>@if (Dimension != "Buyer") { <td>@row.Supplier</td> }@if (Dimension != "Supplier") { <td>@row.Buyer</td> }<td>@row.Currency</td><td class="text-end">@row.Count</td><td class="text-end">@Money(row.Net)</td><td class="text-end">@Money(row.Tax)</td><td class="text-end">@Money(row.Payable)</td></tr>
+    }</tbody>
+</table></div>
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<InvoiceSummary> Rows { get; set; } = [];
+    [Parameter] public string Dimension { get; set; } = "Supplier";
+    static string Money(decimal value) => value.ToString("N2", CultureInfo.InvariantCulture);
+}

@@ -1,0 +1,105 @@
+@page "/invoices/import"
+@using EInvoice.Web.Data
+@using EInvoice.Web.Services
+@inject InvoiceParser Parser
+@inject InvoiceStore Store
+@inject ILogger<InvoiceImport> Logger
+<PageTitle>Import invoices</PageTitle>
+<PageHeader Title="Import invoices" Description="Upload → Preview → Validate → Save" BackHref="/">
+    <Actions>
+        <button type="button" class="btn btn-primary" disabled="@busy" aria-controls="invoice-upload-panel" aria-expanded="@(showUpload ? "true" : "false")" @onclick="() => showUpload = !showUpload">Upload</button>
+    </Actions>
+</PageHeader>
+<div id="invoice-upload-panel">
+    @if (showUpload) { <InvoiceUploadPanel Busy="@busy" OnUpload="Upload" /> }
+</div>
+@if (busy) { <p role="status">Processing files…</p> }
+@if (!validationMessage) { <DismissibleMessage Text="@message" OnDismiss="() => message = string.Empty" /> }
+<MessageDialog @ref="validationDialog" Title="Validation results" />
+@if (items.Count > 0) {
+    <InvoiceImportActions Busy="@busy" CanValidate="@items.Any(x => x.Invoice != null && x.SavedId == null)" CanSave="@items.Any(x => x.Validated && x.SavedId == null)" OnValidate="Validate" OnSave="Save" />
+    <div class="row g-4">
+        <div class="col-lg-4"><UploadedInvoiceList Items="@items" @bind-Selected="selected" Busy="@busy" /></div>
+        <section class="col-lg-8" aria-label="Selected invoice">
+            @if (selected?.Invoice is { } invoice) {
+                <InvoicePreview Invoice="@invoice" ShowChecks="@selected.Validated" ValidationMessage="@selected.Validation" />
+            } else { <p>Select a readable invoice to preview its contents.</p> }
+        </section>
+    </div>
+}
+@code {
+    List<PendingInvoice> items = [];
+    PendingInvoice? selected;
+    bool busy, validationMessage, showUpload;
+    MessageDialog validationDialog = default!;
+    string message = "";
+
+    async Task Upload(InputFileChangeEventArgs args)
+    {
+        busy = true; message = ""; validationMessage = false; items.Clear(); selected = null;
+        try {
+            foreach (var file in args.GetMultipleFiles(200)) {
+                var item = new PendingInvoice { Name = file.Name };
+                items.Add(item);
+                try {
+                    await using var input = file.OpenReadStream(InvoiceParser.MaxBytes);
+                    using var output = new MemoryStream();
+                    await input.CopyToAsync(output);
+                    item.Invoice = Parser.Parse(output.ToArray(), file.Name);
+                } catch (Exception ex) when (ex is System.Xml.XmlException or InvalidDataException or FormatException or OverflowException or IOException) {
+                    item.Error = "Could not read invoice. " + ex.Message;
+                }
+            }
+            selected = items.FirstOrDefault(x => x.Invoice != null) ?? items.FirstOrDefault();
+        } catch (InvalidOperationException) { message = "Select no more than 200 files per batch."; }
+        finally {
+            busy = false;
+            if (items.Count > 0) showUpload = false;
+        }
+    }
+
+    async Task Validate()
+    {
+        if (busy) return;
+        busy = true; message = ""; validationMessage = true;
+        try {
+            foreach (var item in items.Where(x => x.Invoice != null && x.SavedId == null)) {
+                item.Validated = false; item.Error = "";
+                item.Validation = await Store.Validate(item.Invoice!);
+                if (items.Any(x => x != item && x.Invoice?.Sha256 == item.Invoice!.Sha256))
+                    item.Validation += "\nWarning: this batch contains the same file more than once. Only one copy will be saved.";
+                if (items.Any(x => x != item && x.Invoice != null && x.Invoice.Sha256 != item.Invoice!.Sha256 && x.Invoice.Supplier == item.Invoice.Supplier && x.Invoice.Number == item.Invoice.Number))
+                    item.Validation += "\nWarning: another file in this batch has the same supplier and invoice number.";
+                item.Validated = true;
+            }
+            message = "Basic checks completed. Review the results in each preview before saving. Full XRechnung validation has not been performed.";
+        } catch (Exception ex) {
+            Logger.LogError(ex, "Invoice validation failed");
+            message = "Validation could not finish. Please retry.";
+        } finally {
+            busy = false;
+            if (!await validationDialog.ShowAsync(message)) validationMessage = false;
+        }
+    }
+
+    async Task Save()
+    {
+        busy = true; message = ""; validationMessage = false;
+        var saved = 0; var duplicates = 0;
+        try {
+            foreach (var item in items.Where(x => x.Validated && x.SavedId == null)) {
+                item.Error = "";
+                try {
+                    var result = await Store.Import(item.Invoice!.OriginalXml, item.Name);
+                    item.SavedId = result.Id;
+                    if (result.Duplicate) duplicates++; else saved++;
+                } catch (Exception ex) {
+                    Logger.LogError(ex, "Invoice save failed");
+                    item.Error = "Could not save this invoice. Please retry.";
+                }
+            }
+            message = $"Saved {saved} invoice(s). {duplicates} file(s) already existed. See individual file results.";
+        } finally { busy = false; }
+    }
+
+}

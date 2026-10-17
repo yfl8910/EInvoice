@@ -1,0 +1,15 @@
+.sort-button {
+    border: 0;
+    padding: 4px 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-weight: 600;
+    text-align: inherit;
+    width: 100%;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.sort-button:hover { color: #006bb7; }
+.sort-button:focus-visible { outline: 2px solid #258cfb; outline-offset: 3px; border-radius: 2px; }
+.sort-indicator { margin-left: 4px; font-size: .8em; color: #52657c; }

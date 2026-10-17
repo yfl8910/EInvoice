@@ -1,0 +1,67 @@
+@using EInvoice.Web.Data
+@using EInvoice.Web.Services
+@using System.Globalization
+@{
+    var matching = Invoices.Where(x => string.Join(" ", x.Number, x.Supplier, x.Buyer).Contains(Search, StringComparison.OrdinalIgnoreCase)).ToList();
+    var pageSize = Math.Max(1, PageSize);
+    var pageCount = Math.Max(1, (matching.Count + pageSize - 1) / pageSize);
+    var currentPage = Math.Min(page, pageCount - 1);
+    var visible = InvoiceListSorting.Sort(matching, sortColumn, descending).Skip(currentPage * pageSize).Take(pageSize);
+}
+<div class="table-responsive">
+    <table class="table table-hover">
+        <caption class="visually-hidden">Invoice list. Select a column heading to sort; select it again to reverse the order.</caption>
+        <thead><tr>
+            @foreach (var column in Columns) {
+                <th scope="col" class="@(column.Numeric ? "text-end" : null)" aria-sort="@SortState(column.Key)">
+                    <button type="button" class="sort-button" @onclick="() => SortBy(column.Key)" aria-label="@($"Sort by {column.Label}, {(sortColumn == column.Key && !descending ? "descending" : "ascending")}")">
+                        @column.Label <span class="sort-indicator" aria-hidden="true">@(sortColumn == column.Key ? descending ? "▼" : "▲" : "↕")</span>
+                    </button>
+                </th>
+            }
+        </tr></thead>
+        <tbody>
+            @foreach (var invoice in visible) {
+                <tr @key="invoice.Id"><td><a href="@($"/invoices/{invoice.Id}")">@invoice.Number</a></td><td>@invoice.IssueDate</td><td>@invoice.Supplier</td><td>@invoice.Buyer</td><td>@invoice.Currency</td><td class="text-end">@Money(invoice.Net)</td><td class="text-end">@Money(invoice.Tax)</td><td class="text-end">@Money(invoice.Payable)</td></tr>
+            }
+            @if (matching.Count == 0) { <tr><td colspan="8" class="text-muted py-4">No invoices found. Adjust your search or import XML files to begin.</td></tr> }
+        </tbody>
+    </table>
+</div>
+<div class="d-flex flex-wrap gap-3 align-items-center">
+    <button type="button" class="btn btn-outline-secondary" disabled="@(currentPage == 0)" @onclick="() => page = currentPage - 1">Previous</button>
+    <span>Page @(currentPage + 1) of @pageCount</span>
+    <button type="button" class="btn btn-outline-secondary" disabled="@(currentPage + 1 >= pageCount)" @onclick="() => page = currentPage + 1">Next</button>
+    <span class="text-muted" role="status">@matching.Count invoices@(Search.Length > 0 ? $" matching / {Invoices.Count} total" : "")</span>
+</div>
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<Invoice> Invoices { get; set; } = [];
+    [Parameter] public string Search { get; set; } = "";
+    [Parameter] public int PageSize { get; set; } = 25;
+    InvoiceSortColumn? sortColumn;
+    bool descending;
+    int page;
+    string previousSearch = "";
+    IReadOnlyList<Invoice>? previousInvoices;
+    int previousPageSize;
+    static readonly (InvoiceSortColumn Key, string Label, bool Numeric)[] Columns = [
+        (InvoiceSortColumn.Invoice, "Invoice", false), (InvoiceSortColumn.Date, "Date", false),
+        (InvoiceSortColumn.Supplier, "Supplier", false), (InvoiceSortColumn.Buyer, "Buyer", false),
+        (InvoiceSortColumn.Currency, "Currency", false), (InvoiceSortColumn.Net, "Net", true),
+        (InvoiceSortColumn.Tax, "Tax", true), (InvoiceSortColumn.Payable, "Payable", true)
+    ];
+
+    protected override void OnParametersSet()
+    {
+        if (Search != previousSearch || !ReferenceEquals(Invoices, previousInvoices) || PageSize != previousPageSize) page = 0;
+        previousSearch = Search; previousInvoices = Invoices; previousPageSize = PageSize;
+    }
+    void SortBy(InvoiceSortColumn column)
+    {
+        descending = sortColumn == column && !descending;
+        sortColumn = column;
+        page = 0;
+    }
+    string SortState(InvoiceSortColumn column) => sortColumn != column ? "none" : descending ? "descending" : "ascending";
+    static string Money(decimal value) => value.ToString("N2", CultureInfo.InvariantCulture);
+}

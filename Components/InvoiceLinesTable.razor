@@ -1,0 +1,10 @@
+@using EInvoice.Web.Data
+    <h3 class="h5">Invoice lines</h3>
+    <div class="table-responsive"><table class="table">
+        <thead><tr><th>Line</th><th>Item</th><th>Item code / scheme</th><th>Quantity</th><th>Unit price</th><th>Net</th><th>Tax</th></tr></thead>
+        <tbody>@foreach (var line in Lines.OrderBy(x => x.Id)) {
+            <tr><td>@line.Number</td><td>@line.Name</td><td>@line.ItemCode / @line.Scheme</td><td>@line.Quantity @line.Unit</td><td>@line.Price</td><td>@line.Net</td><td>@line.TaxCategory / @line.TaxRate%</td></tr>
+        }</tbody>
+    </table></div>
+
+@code { [Parameter, EditorRequired] public IReadOnlyList<InvoiceLine> Lines { get; set; } = []; }

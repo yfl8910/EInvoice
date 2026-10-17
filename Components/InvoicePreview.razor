@@ -1,0 +1,36 @@
+@using EInvoice.Web.Data
+<section class="invoice-preview" aria-label="Invoice preview">
+    <header class="mb-3">
+        <h2 class="h4">Invoice @Invoice.Number</h2>
+        <p class="text-muted mb-2">System-generated preview of the original XML</p>
+        @if (Actions is not null) { <div class="d-flex flex-wrap gap-2">@Actions</div> }
+    </header>
+    @if (ShowChecks && (!string.IsNullOrWhiteSpace(Invoice.Checks) || !string.IsNullOrWhiteSpace(ValidationMessage))) {
+        <div class="alert alert-warning preview-checks" role="status">@Invoice.Checks@if (!string.IsNullOrWhiteSpace(ValidationMessage)) { @("\n" + ValidationMessage) }</div>
+    }
+    <dl class="row">
+        <dt class="col-sm-3">Supplier</dt><dd class="col-sm-9">@Invoice.Supplier</dd>
+        <dt class="col-sm-3">Buyer</dt><dd class="col-sm-9">@Invoice.Buyer</dd>
+        <dt class="col-sm-3">Issue / due date</dt><dd class="col-sm-9">@Invoice.IssueDate / @Invoice.DueDate</dd>
+        <dt class="col-sm-3">Buyer reference</dt><dd class="col-sm-9">@Invoice.BuyerReference</dd>
+        <dt class="col-sm-3">Order / despatch</dt><dd class="col-sm-9">@Invoice.OrderReference / @Invoice.DespatchReference</dd>
+        <dt class="col-sm-3">Payment account (original)</dt><dd class="col-sm-9">@Invoice.PaymentAccount</dd>
+        <dt class="col-sm-3">Note</dt><dd class="col-sm-9">@Invoice.Note</dd>
+    </dl>
+    <InvoiceLinesTable Lines="@Invoice.Lines" />
+    <p class="fs-5">Net: @Invoice.Net @Invoice.Currency · Tax: @Invoice.Tax @Invoice.Currency · <strong>Payable: @Invoice.Payable @Invoice.Currency</strong></p>
+    <InvoiceFieldsTable Fields="@Invoice.Fields" />
+
+    <footer class="text-muted mt-4 text-break small">
+        <p class="mb-1">Original file: @Invoice.FileName</p>
+        @if (ShowFingerprint && !string.IsNullOrEmpty(Invoice.Sha256)) { <p class="mb-0">SHA-256: @Invoice.Sha256</p> }
+    </footer>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public Invoice Invoice { get; set; } = default!;
+    [Parameter] public RenderFragment? Actions { get; set; }
+    [Parameter] public bool ShowChecks { get; set; } = true;
+    [Parameter] public string? ValidationMessage { get; set; }
+    [Parameter] public bool ShowFingerprint { get; set; } = true;
+}

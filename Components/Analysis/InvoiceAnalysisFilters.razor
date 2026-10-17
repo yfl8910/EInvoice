@@ -1,0 +1,21 @@
+@using EInvoice.Web.Data
+<section class="card p-3 mb-4" aria-label="Analysis filters">
+    <div class="row g-3">
+        <div class="col-md-4"><label for="dimension" class="form-label">Group by</label>
+            <select id="dimension" class="form-select" @bind:get="Value.Dimension" @bind:set="v => Update(Value with { Dimension = v })">
+                <option value="Supplier">Supplier</option><option value="Buyer">Buyer</option><option value="SupplierBuyer">Supplier + Buyer</option>
+            </select>
+        </div>
+        <div class="col-md-4"><label for="analysis-search" class="form-label">Supplier / Buyer</label><input id="analysis-search" class="form-control" placeholder="Filter by name" @bind:get="Value.Search" @bind:set="v => Update(Value with { Search = v })" @bind:event="oninput" /></div>
+        <div class="col-md-4"><label for="currency" class="form-label">Currency</label><select id="currency" class="form-select" @bind:get="Value.Currency" @bind:set="v => Update(Value with { Currency = v })"><option value="">All currencies</option>@foreach (var currency in Currencies.Distinct().OrderBy(x => x)) { <option value="@currency">@(string.IsNullOrWhiteSpace(currency) ? "(Not provided)" : currency)</option> }</select></div>
+        <div class="col-md-4"><label for="date-from" class="form-label">Invoice date from</label><input id="date-from" type="date" class="form-control" @bind:get="Value.DateFrom" @bind:set="v => Update(Value with { DateFrom = v })" /></div>
+        <div class="col-md-4"><label for="date-to" class="form-label">Invoice date to</label><input id="date-to" type="date" class="form-control" @bind:get="Value.DateTo" @bind:set="v => Update(Value with { DateTo = v })" /></div>
+        <div class="col-md-4 d-flex align-items-end"><button type="button" class="btn btn-outline-secondary" @onclick="() => Update(new())">Reset filters</button></div>
+    </div>
+</section>
+@code {
+    [Parameter] public InvoiceAnalysisFilter Value { get; set; } = new();
+    [Parameter] public EventCallback<InvoiceAnalysisFilter> ValueChanged { get; set; }
+    [Parameter] public IEnumerable<string> Currencies { get; set; } = [];
+    Task Update(InvoiceAnalysisFilter value) => ValueChanged.InvokeAsync(value);
+}

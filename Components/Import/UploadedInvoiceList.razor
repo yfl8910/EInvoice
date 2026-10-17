@@ -1,0 +1,17 @@
+@using EInvoice.Web.Data
+<section aria-label="Uploaded files">
+    @foreach (var item in Items) {
+        <div class="card p-3 mb-2 @(ReferenceEquals(item, Selected) ? "border-primary" : "")" @key="item">
+            <button type="button" class="btn btn-link text-start p-0 text-break" disabled="@Busy" aria-pressed="@(ReferenceEquals(item, Selected) ? "true" : "false")" @onclick="() => SelectedChanged.InvokeAsync(item)">@item.Name</button>
+            <span class="small text-muted">@(item.SavedId != null ? "Saved" : item.Invoice == null ? "Cannot import" : item.Validated ? "Validated — ready to save" : "Preview ready — validation required")</span>
+            @if (item.Error.Length > 0) { <p class="text-danger mb-0" role="alert">@item.Error</p> }
+            @if (item.SavedId != null) { <a href="@($"/invoices/{item.SavedId}")">View saved invoice</a> }
+        </div>
+    }
+</section>
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<PendingInvoice> Items { get; set; } = [];
+    [Parameter] public PendingInvoice? Selected { get; set; }
+    [Parameter] public EventCallback<PendingInvoice?> SelectedChanged { get; set; }
+    [Parameter] public bool Busy { get; set; }
+}

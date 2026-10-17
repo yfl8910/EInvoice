@@ -1,0 +1,13 @@
+.sidebar { width: 232px; flex-shrink: 0; padding: 32px 20px; background: #142a43; color: #fff; position: sticky; top: 0; height: 100vh; }
+.brand { display: block; color: #fff; font-size: 26px; font-weight: 700; text-decoration: none; padding: 0 12px; }
+.sidebar-caption { color: #b5c6d9; padding: 8px 12px 24px; margin: 0; }
+.sidebar ::deep .menu-link { display: block; color: #d4e0ee; text-decoration: none; padding: 13px 16px; border-radius: 8px; margin-bottom: 8px; }
+.sidebar ::deep .menu-link:hover { background: #213e5c; color: #fff; }
+.sidebar ::deep .menu-link.active { background: #2563a6; color: #fff; font-weight: 600; }
+@media (max-width: 767px) {
+    .sidebar { width: 100%; height: auto; position: static; padding: 16px; }
+    .brand { font-size: 22px; }
+    .sidebar-caption { padding-bottom: 12px; }
+    nav { display: flex; flex-wrap: wrap; gap: 4px; }
+    .sidebar ::deep .menu-link { margin: 0; padding: 10px 12px; }
+}

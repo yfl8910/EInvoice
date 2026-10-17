@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net11.0-windows10.0.26100.0</TargetFramework>
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">win-x64</RuntimeIdentifier>
+    <SelfContained Condition="'$(SelfContained)' == ''">false</SelfContained>
+    <PublishSelfContained>true</PublishSelfContained>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="11.0.0-rc.2.26504.105" />
+    <PackageReference Include="PDFsharp-MigraDoc" Version="6.2.4" />
+  </ItemGroup>
+
+  <!-- SDK selection in global.json does not configure the executable's runtime lookup. -->
+  <Target Name="ConfigureLocalRuntimeHost" AfterTargets="_CreateAppHost" Condition="'$(UseAppHost)' == 'true' and '$(SelfContained)' != 'true' and Exists('$(MSBuildProjectDirectory)/../.dotnet/host/fxr') and Exists('$(AppHostSourcePath)') and Exists('@(IntermediateAssembly)')">
+    <PropertyGroup>
+      <_LocalDotNetRoot>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)/../.dotnet'))</_LocalDotNetRoot>
+      <_LocalDotNetRelativePath>$([MSBuild]::MakeRelative('$(TargetDir)', '$(_LocalDotNetRoot)'))</_LocalDotNetRelativePath>
+    </PropertyGroup>
+    <CreateAppHost AppHostSourcePath="$(AppHostSourcePath)" AppHostDestinationPath="$(AppHostIntermediatePath)" AppBinaryName="$(AssemblyName)$(TargetExt)" IntermediateAssembly="@(IntermediateAssembly->'%(FullPath)')" WindowsGraphicalUserInterface="$(_UseWindowsGraphicalUserInterface)" EnableMacOSCodeSign="$(_EnableMacOSCodeSign)" DotNetSearchLocations="AppRelative;Global" AppRelativeDotNet="$(_LocalDotNetRelativePath)" />
+  </Target>
+
+</Project>

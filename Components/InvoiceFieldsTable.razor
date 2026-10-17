@@ -1,0 +1,8 @@
+@using EInvoice.Web.Data
+    <details class="mt-4"><summary>All extracted fields (technical XML paths)</summary>
+        <table class="table table-sm"><thead><tr><th>Field</th><th>Original value</th></tr></thead><tbody>
+        @foreach (var field in Fields.OrderBy(x => x.Id)) { <tr><td class="text-break">@field.Path</td><td class="text-break">@field.Value</td></tr> }
+        </tbody></table>
+    </details>
+
+@code { [Parameter, EditorRequired] public IReadOnlyList<InvoiceField> Fields { get; set; } = []; }

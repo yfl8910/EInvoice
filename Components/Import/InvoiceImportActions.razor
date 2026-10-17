@@ -1,0 +1,11 @@
+<div class="d-flex flex-wrap gap-2 mb-3">
+    <button type="button" class="btn btn-outline-primary" disabled="@(Busy || !CanValidate)" @onclick="OnValidate">Validate files</button>
+    <button type="button" class="btn btn-primary" disabled="@(Busy || !CanSave)" @onclick="OnSave">Save validated files</button>
+</div>
+@code {
+    [Parameter] public bool Busy { get; set; }
+    [Parameter] public bool CanValidate { get; set; }
+    [Parameter] public bool CanSave { get; set; }
+    [Parameter] public EventCallback OnValidate { get; set; }
+    [Parameter] public EventCallback OnSave { get; set; }
+}

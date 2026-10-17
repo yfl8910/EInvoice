@@ -1,0 +1,9 @@
+@if (!string.IsNullOrEmpty(Text)) {
+    <div class="alert alert-info alert-dismissible" role="status" @ondblclick="OnDismiss">
+        @Text<button type="button" class="btn-close" aria-label="Close message" @onclick="OnDismiss"></button>
+    </div>
+}
+@code {
+    [Parameter] public string Text { get; set; } = "";
+    [Parameter] public EventCallback OnDismiss { get; set; }
+}

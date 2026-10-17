@@ -1,0 +1,15 @@
+@page "/"
+@using EInvoice.Web.Data
+@using EInvoice.Web.Services
+@inject InvoiceStore Store
+<PageTitle>Invoice List</PageTitle>
+<PageHeader Title="Invoice List" Description="XRechnung XML · Single company · Local prototype">
+    <Actions><a class="btn btn-primary" href="/invoices/import">Import invoices</a></Actions>
+</PageHeader>
+<div class="mb-3"><InvoiceSearchBox @bind-Value="search" /></div>
+<InvoiceListTable Invoices="invoices" Search="@search" />
+@code {
+    List<Invoice> invoices = [];
+    string search = "";
+    protected override async Task OnInitializedAsync() => invoices = await Store.List();
+}

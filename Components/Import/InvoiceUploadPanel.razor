@@ -1,0 +1,10 @@
+<section class="card p-3 mb-4">
+    <h2 class="h5">Upload XML files</h2>
+    <p>Choose up to 200 XML files, maximum 30 MB each. Files are only saved when you click Save.</p>
+    <InputFile OnChange="OnUpload" accept=".xml" multiple disabled="@Busy" />
+    <details class="text-muted small mt-2"><summary>Upload information</summary><p class="mb-0 mt-2">Choosing new files replaces the current preview. Unsaved files are discarded when you leave this page.</p></details>
+</section>
+@code {
+    [Parameter] public bool Busy { get; set; }
+    [Parameter] public EventCallback<InputFileChangeEventArgs> OnUpload { get; set; }
+}

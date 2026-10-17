@@ -1,0 +1,12 @@
+.invoice-preview {
+    min-width: 0;
+}
+
+.preview-checks {
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+
+dd {
+    overflow-wrap: anywhere;
+}

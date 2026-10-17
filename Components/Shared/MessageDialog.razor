@@ -1,0 +1,44 @@
+@inject IJSRuntime JS
+@inject ILogger<MessageDialog> Logger
+@implements IAsyncDisposable
+<dialog @ref="dialog" class="message-dialog" aria-labelledby="@titleId" aria-describedby="@messageId" @ondblclick="Close">
+    <div class="d-flex justify-content-between align-items-center gap-3 mb-3">
+        <h2 id="@titleId" class="h5 mb-0">@Title</h2>
+        <button type="button" class="btn-close" aria-label="Close message" @onclick="Close"></button>
+    </div>
+    <p id="@messageId">@message</p>
+    <p class="text-muted small">Double-click this message or press Escape to close.</p>
+    <div class="text-end"><button type="button" class="btn btn-primary" autofocus @onclick="Close">Close</button></div>
+</dialog>
+@code {
+    [Parameter] public string Title { get; set; } = "Message";
+    readonly string titleId = "dialog-title-" + Guid.NewGuid().ToString("N");
+    readonly string messageId = "dialog-message-" + Guid.NewGuid().ToString("N");
+    ElementReference dialog;
+    IJSObjectReference? module;
+    string message = "";
+
+    public async Task<bool> ShowAsync(string text)
+    {
+        message = text;
+        await InvokeAsync(StateHasChanged);
+        try {
+            module ??= await JS.InvokeAsync<IJSObjectReference>("import", "./Components/Shared/MessageDialog.razor.js");
+            await module.InvokeVoidAsync("open", dialog);
+            return true;
+        } catch (JSDisconnectedException) { return false; }
+        catch (JSException ex) { Logger.LogWarning(ex, "Could not open message dialog"); return false; }
+    }
+    async Task Close()
+    {
+        if (module is null) return;
+        try { await module.InvokeVoidAsync("close", dialog); }
+        catch (JSDisconnectedException) { }
+    }
+    public async ValueTask DisposeAsync()
+    {
+        if (module is null) return;
+        try { await module.DisposeAsync(); }
+        catch (JSDisconnectedException) { }
+    }
+}

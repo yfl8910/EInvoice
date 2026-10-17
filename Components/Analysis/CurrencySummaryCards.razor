@@ -1,0 +1,11 @@
+@using EInvoice.Web.Services
+@using System.Globalization
+<div class="row g-3 mb-4" aria-label="Currency totals">
+    @foreach (var total in Totals) {
+        <div class="col-md-6 col-xl-4"><div class="card p-3 h-100"><h2 class="h5">@total.Currency</h2><p>@total.Count invoices</p><dl class="row mb-0"><dt class="col-5">Net</dt><dd class="col-7 text-end">@Money(total.Net)</dd><dt class="col-5">Tax</dt><dd class="col-7 text-end">@Money(total.Tax)</dd><dt class="col-5">Payable</dt><dd class="col-7 text-end fw-bold">@Money(total.Payable)</dd></dl></div></div>
+    }
+</div>
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<InvoiceSummary> Totals { get; set; } = [];
+    static string Money(decimal value) => value.ToString("N2", CultureInfo.InvariantCulture);
+}

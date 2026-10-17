@@ -1,0 +1,3 @@
+<a class="btn btn-outline-primary" href="@($"/invoices/{InvoiceId}/original")" data-enhance-nav="false">Download original XML</a>
+<a class="btn btn-primary" href="@($"/invoices/{InvoiceId}/pdf")" data-enhance-nav="false">Download PDF</a>
+@code { [Parameter, EditorRequired] public int InvoiceId { get; set; } }
