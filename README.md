@@ -8,7 +8,7 @@ Blazor invoice management application targeting .NET 11, with EF Core 11 and SQL
 - .NET 11 is currently a release candidate, not a final release.
 - [Official SDK downloads](https://dotnet.microsoft.com/en-us/download/dotnet/11.0).
 
-`global.json` selects the RC2 SDK, checking the repository's `.dotnet` directory first and the system installation second. A verified Windows x64 SDK has been installed in `.dotnet` for this workspace. SDK binaries, restored packages, databases and generated files are excluded from version control. NuGet packages are restored into `.packages`.
+`global.json` selects the RC2 SDK, checking `.dotnet`, then the parent directory's `.dotnet`, and finally the system installation. This workspace uses the verified Windows x64 SDK in `../.dotnet`. SDK binaries, restored packages, databases and generated files are excluded from version control. NuGet packages are restored into `.packages`.
 
 ## Run
 
@@ -16,20 +16,20 @@ From the repository root:
 
 ```powershell
 dotnet --version
-dotnet restore EInvoice.Web
-dotnet run --project EInvoice.Web --no-launch-profile --urls http://127.0.0.1:5080
+dotnet restore EInvoice.Web.csproj
+dotnet run --project EInvoice.Web.csproj --no-launch-profile --urls http://127.0.0.1:5080
 ```
 
 Open http://127.0.0.1:5080. The three navigation entries are Invoice Upload, Invoice List and Invoice Analysis. Uploading and validating do not save an invoice until Save is clicked.
 
-When launching a compiled DLL directly with the local runtime, use `.\.dotnet\dotnet.exe` instead of the system host, unless RC2 is also installed system-wide.
+When launching a compiled DLL directly with the local runtime, use `..\.dotnet\dotnet.exe` instead of the system host, unless RC2 is also installed system-wide.
 
 Debug and Release executables built in this repository are configured to locate `.dotnet` relative to their output directory, falling back to the system installation. This allows direct execution and IDE debugging without a system-wide RC2 installation. Rebuild after moving the build output or installing the local SDK. Published applications are self-contained and include the required runtime; a system-wide RC2 installation is not needed.
 
 ## Publish and run
 
 ```powershell
-dotnet publish EInvoice.Web/EInvoice.Web.csproj -c Release -r win-x64 --self-contained true -o ./publish
+dotnet publish EInvoice.Web.csproj -c Release -r win-x64 --self-contained true -o ./publish
 ./publish/EInvoice.Web.exe --contentRoot ./publish --urls http://127.0.0.1:5080
 ```
 
@@ -44,8 +44,8 @@ Build output is also supported outside Development: startup explicitly enables i
 ## Verification
 
 ```powershell
-dotnet build EInvoice.Web -c Release
-dotnet run --project EInvoice.Web -- --verify-pdf
+dotnet build EInvoice.Web.csproj -c Release
+dotnet run --project EInvoice.Web.csproj -- --verify-pdf
 ```
 
 PDF verification generates six sample PDFs and a 120-line multipage PDF under `tmp/pdfs`, without writing invoices to the database. Windows requires Arial; Linux requires DejaVu Sans under `/usr/share/fonts/truetype/dejavu`.
@@ -53,3 +53,4 @@ PDF verification generates six sample PDFs and a 120-line multipage PDF under `t
 `--verify-samples` checks XML parsing, preview without saving, persisted invoices and lines, duplicates, currency-aware analysis, original bytes, XML attributes, malformed XML and DTD rejection. It imports sample invoices into the selected content root's database; use a separate test content root and a sibling `电子发票` directory when testing without changing application data.
 
 The application database remains at `EInvoice.Web/App_Data/invoices.db`. This framework upgrade does not change the invoice schema. Compatibility was verified against a SQLite backup of the existing database, in addition to a fresh test database.
+
