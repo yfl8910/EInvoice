@@ -74,6 +74,20 @@ public static class SampleVerification
             Check(invoice.Lines.All(x => x.Number.StartsWith("0000") && x.Scheme == "0160" && x.Unit == "EA"), "Line attributes lost.");
             Check(invoice.Fields.Any(x => x.Path.Contains("DeliveryLocation")), "Delivery address missing.");
             Check(invoice.PaymentAccount.StartsWith("IBAN "), "Original account text lost.");
+            var details = InvoiceDetailProjection.Build(invoice);
+            foreach (var section in new[] { "Supplier details", "Buyer details", "Delivery", "Payment details", "Tax breakdown", "Invoice totals (original)" })
+                Check(details.Any(x => x.Title == section), "Additional invoice section missing: " + section);
+            var savedDetails = details.SelectMany(x => x.Entries).OrderBy(x => x.XmlPath).Select(x => (x.Label, x.Value)).ToArray();
+            var previewDetails = InvoiceDetailProjection.Build(preview).SelectMany(x => x.Entries).OrderBy(x => x.XmlPath).Select(x => (x.Label, x.Value)).ToArray();
+            Check(savedDetails.SequenceEqual(previewDetails), "Additional details changed after database round-trip.");
+            if (invoice.Number == "6250035639") {
+                var entries = details.SelectMany(x => x.Entries).ToList();
+                Check(entries.Any(x => x.Label == "Actual delivery date (XML)" && x.Value == "2026-08-04"), "XML delivery date was overwritten by the PDF reference.");
+                foreach (var expectedValue in new[] { "DE815701343", "DE129422178", "WEEE: DE 30824838", "TUBDDEDD", "HSBC CONTINENTAL EUROPE S.A., GERMANY", "48368.26" })
+                    Check(entries.Any(x => x.Value == expectedValue), "Additional source field not displayed: " + expectedValue);
+                Check(entries.Any(x => x.Label == "Delivery address" && x.Value.Contains("Europaring 20-22")), "Delivery address projection missing.");
+                Check(!entries.Any(x => x.Value == "DDP Dornach (Munich)" || x.Value == "8528724000" || x.Value == "6002256"), "PDF-only fields must not be invented in XML data.");
+            }
             Check((await store.Import(bytes, "renamed.xml")).Duplicate, "Duplicate file was not detected.");
             Check((await store.Validate(preview)).StartsWith("Already imported"), "Validation did not detect saved duplicate.");
             var renamed = Encoding.UTF8.GetString(bytes).Replace("xmlns:cbc=", "xmlns:basic=").Replace("cbc:", "basic:");
@@ -82,6 +96,12 @@ public static class SampleVerification
             Console.WriteLine($"PASS {invoice.Number}: {invoice.Lines.Count} lines, {invoice.Payable} {invoice.Currency}, database round-trip and duplicate detection");
         }
         Check(ids.Count == 6, "Expected six distinct invoices.");
+        var repeatedPayments = new Invoice { Fields = [
+            new() { Path = "Invoice/PaymentMeans[1]/PaymentID[1]", Value = "PAY-1" },
+            new() { Path = "Invoice/PaymentMeans[2]/PaymentID[1]", Value = "PAY-2" }
+        ] };
+        Check(InvoiceDetailProjection.Build(repeatedPayments).Count(x => x.Title == "Payment details") == 2, "Multiple payment instructions were lost.");
+        Check(InvoiceDetailProjection.Build(new Invoice()).Count == 0, "Missing optional details should not be fabricated.");
         foreach (var invalid in new[] { "<broken", "<!DOCTYPE Invoice [<!ENTITY x SYSTEM 'file:///secret'>]><Invoice>&x;</Invoice>" }) {
             var rejected = false;
             try { parser.Parse(Encoding.UTF8.GetBytes(invalid), "invalid.xml"); }

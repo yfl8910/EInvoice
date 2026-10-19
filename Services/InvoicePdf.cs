@@ -50,6 +50,20 @@ public sealed class InvoicePdf
         Field("Despatch reference", invoice.DespatchReference); Field("Payment account", invoice.PaymentAccount);
         Field("Currency", invoice.Currency);
         if (!string.IsNullOrEmpty(invoice.Note)) Field("Note", invoice.Note);
+        foreach (var detail in InvoiceDetailProjection.Build(invoice)) {
+            var detailHeading = section.AddParagraph(detail.Title);
+            detailHeading.Format.SpaceBefore = Unit.FromPoint(10);
+            detailHeading.Format.Font.Bold = true;
+            detailHeading.Format.KeepWithNext = true;
+            var detailTable = section.AddTable();
+            detailTable.AddColumn(Unit.FromCentimeter(5));
+            detailTable.AddColumn(Unit.FromCentimeter(12.4));
+            foreach (var entry in detail.Entries) {
+                var row = detailTable.AddRow();
+                row.Cells[0].AddParagraph(entry.Label).Format.Font.Bold = true;
+                row.Cells[1].AddParagraph(entry.Value);
+            }
+        }
         var heading = section.AddParagraph("Invoice lines");
         heading.Format.SpaceBefore = Unit.FromPoint(16); heading.Format.Font.Size = 13; heading.Format.Font.Bold = true;
         var lines = section.AddTable();

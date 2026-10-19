@@ -57,6 +57,8 @@ public static class ListViewVerification
                     new Dictionary<string, object?> { [nameof(InvoiceDetail.Id)] = id }))).ToHtmlString();
                 if (!detail.Contains("class=\"invoice-preview\"") || !detail.Contains($"href=\"/invoices/{id}/pdf\"") || !detail.Contains($"href=\"/invoices/{id}/original\""))
                     throw new InvalidOperationException("Detail page did not render the shared preview and download actions.");
+                if (!detail.Contains("Additional invoice details") || !detail.Contains("Actual delivery date (XML)") || !detail.Contains("Tax breakdown"))
+                    throw new InvalidOperationException("Expanded XML fields did not render for a stored invoice.");
             }
             var analysis = (await renderer.RenderComponentAsync<InvoiceAnalysisPage>()).ToHtmlString();
             if (!analysis.Contains("Group by") || !analysis.Contains("Currency totals") || !analysis.Contains("Supplier") || !analysis.Contains("Payable"))

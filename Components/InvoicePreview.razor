@@ -17,6 +17,7 @@
         <dt class="col-sm-3">Payment account (original)</dt><dd class="col-sm-9">@Invoice.PaymentAccount</dd>
         <dt class="col-sm-3">Note</dt><dd class="col-sm-9">@Invoice.Note</dd>
     </dl>
+    <InvoiceAdditionalDetails Invoice="@Invoice" />
     <InvoiceLinesTable Lines="@Invoice.Lines" />
     <p class="fs-5">Net: @Invoice.Net @Invoice.Currency · Tax: @Invoice.Tax @Invoice.Currency · <strong>Payable: @Invoice.Payable @Invoice.Currency</strong></p>
     <InvoiceFieldsTable Fields="@Invoice.Fields" />

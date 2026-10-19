@@ -2,8 +2,8 @@
 <!-- https://go.microsoft.com/fwlink/?LinkID=208121. -->
 <Project>
   <PropertyGroup>
-    <_PublishTargetUrl>D:\Mycode\EInvoice\EInvoice.Web\bin\\\\publish\</_PublishTargetUrl>
-    <History>True|2026-10-17T19:58:43.1561012Z||;True|2026-10-17T21:57:27.9383443+02:00||;True|2026-10-17T21:55:39.2983723+02:00||;True|2026-10-17T21:52:00.5012826+02:00||;True|2026-10-17T21:49:25.2522151+02:00||;True|2026-10-17T21:48:35.1272689+02:00||;True|2026-10-17T21:47:38.3596316+02:00||;True|2026-10-17T21:46:29.2774574+02:00||;</History>
+    <_PublishTargetUrl>D:\Mycode\EInvoice\EInvoice\bin\\\\publish\</_PublishTargetUrl>
+    <History>True|2026-10-19T14:17:41.8659403Z||;True|2026-10-19T16:15:15.5014663+02:00||;True|2026-10-17T22:29:35.7883856+02:00||;True|2026-10-17T21:58:43.1561012+02:00||;True|2026-10-17T21:57:27.9383443+02:00||;True|2026-10-17T21:55:39.2983723+02:00||;True|2026-10-17T21:52:00.5012826+02:00||;True|2026-10-17T21:49:25.2522151+02:00||;True|2026-10-17T21:48:35.1272689+02:00||;True|2026-10-17T21:47:38.3596316+02:00||;True|2026-10-17T21:46:29.2774574+02:00||;</History>
     <LastFailureDetails />
   </PropertyGroup>
 </Project>

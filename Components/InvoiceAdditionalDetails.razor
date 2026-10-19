@@ -1,0 +1,17 @@
+@using EInvoice.Web.Data
+@using EInvoice.Web.Services
+<div class="row g-3 mb-4" aria-label="Additional invoice details">
+    @foreach (var section in InvoiceDetailProjection.Build(Invoice)) {
+        <section class="col-lg-6">
+            <div class="card p-3 h-100">
+                <h3 class="h6">@section.Title</h3>
+                <dl class="row mb-0 small">
+                    @foreach (var field in section.Entries) {
+                        <dt class="col-sm-5">@field.Label</dt><dd class="col-sm-7 text-break">@field.Value</dd>
+                    }
+                </dl>
+            </div>
+        </section>
+    }
+</div>
+@code { [Parameter, EditorRequired] public Invoice Invoice { get; set; } = default!; }
